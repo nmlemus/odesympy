@@ -4,3 +4,4 @@ PyYAML==6.0
 streamlit==1.18.1
 streamlit-ace==0.1.1
 sympy==1.10.1
+PyGOM==0.1.7
