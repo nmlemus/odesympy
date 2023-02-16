@@ -1,0 +1,18 @@
+# Model Variables
+stateList: ['S', 'I', 'R']
+
+# Model Parameters
+paramList: ['beta', 'gamma']
+
+# Model Transitions
+transition1:
+    origin: 'S'
+    equation: '-beta*S*I'
+    
+transition2:
+    origin: 'I'
+    equation: 'beta*S*I - gamma*I'
+    
+transition3:
+    origin: 'R'
+    equation: 'gamma*I'
