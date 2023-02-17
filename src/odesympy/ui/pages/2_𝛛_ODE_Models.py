@@ -7,7 +7,7 @@ import sympy
 import numpy as np
 import pandas as pd
 
-st.set_page_config(page_title="Models", page_icon="🗠")
+st.set_page_config(page_title="Models", page_icon="🗠", layout="wide")
 
 st.markdown("# Select or Create a new Model")
 
@@ -34,7 +34,10 @@ if len(content) > 0:
 
     model = DeterministicOde(stateList, paramList, ode=ode)
 
+    # TODO: reorganize the symbols because the usual notation is params first, variables next (e.g. alpha*S)
+
     A = model.get_ode_eqn()
+    
     B = sympy.zeros(A.rows,2)
     for i in range(A.shape[0]):
         B[i,0] = sympy.symbols('d' + str(stateList[i]) + '/dt=')
@@ -46,20 +49,48 @@ if len(content) > 0:
                             inv_trig_style='full'))
     
     st.subheader('Simulate the Model')
-    
 
-    # Solve the model
-    x0 = [1, 1.27e-6, 0]
-    t = np.linspace(0, 150, 100)
+    with st.form("sim_form"):
+        x0 = []
+        model_params = []
 
-    model.parameters = [0.5, 1.0/3.0]
+        col1, col2 = st.columns(2)
 
-    model.initial_values = (x0, t[0])
+        with col1:
+            st.subheader('Initial Conditions')
+            for state_var in stateList:
+                x0.append(float(st.text_input(str(state_var), value=1)))
 
-    solutionReference = model.integrate(t[1::], full_output=False)
-    chart_data = pd.DataFrame(
-        solutionReference,
-        columns=stateList)
+        with col2:
+            st.subheader('Parameters')
+            for param_var in paramList:
+                model_params.append(float(st.text_input(str(param_var), value=1)))
 
-    st.subheader('Simulation Result')
-    st.line_chart(chart_data)
+            st.subheader('Time')
+
+            t0 = int(st.text_input('Start Time', value=1))
+            tf = int(st.text_input('End Time', value=10))
+            dt = int(st.text_input('Time Steps', value=100))
+
+
+        # Every form must have a submit button.
+        submitted = st.form_submit_button("Simulate Model")
+        if submitted:
+
+            st.info('Simulating the model with initial conditions: ' + str(x0) + ' and params ' + \
+                    str(model_params) + ' from t0 = ' + str(t0) + ' to t = ' + str(tf))
+
+            # Solve the model
+            t = np.linspace(t0, dt, tf)
+
+            model.parameters = model_params
+
+            model.initial_values = (x0, t[0])
+
+            solutionReference = model.integrate(t[1::], full_output=False)
+            chart_data = pd.DataFrame(
+                solutionReference,
+                columns=stateList)
+
+            st.subheader('Simulation Result')
+            st.line_chart(chart_data)
